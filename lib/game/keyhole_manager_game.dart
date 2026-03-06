@@ -33,6 +33,34 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
     await building.loaded;
     manager = building.manager;
+
+    _updateCamera();
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _updateCamera();
+  }
+
+  void _updateCamera() {
+    final buildingHeight = floorCount * GameConstants.floorHeight;
+    final buildingBottom = building.position.y; // world Y of bottom edge
+    final buildingTop = buildingBottom - buildingHeight;
+
+    // Manager center in world coordinates
+    final managerWorldY = buildingBottom - buildingHeight +
+        manager.position.y +
+        manager.size.y / 2;
+
+    // Camera Y: center on manager, but clamp so building edges stay in view
+    const halfView = GameConstants.viewportHeight / 2;
+    final cameraY = managerWorldY.clamp(
+      buildingTop + halfView,
+      buildingBottom - halfView,
+    );
+
+    camera.viewfinder.position = Vector2(0, cameraY);
   }
 
   void _buildRooms() {
