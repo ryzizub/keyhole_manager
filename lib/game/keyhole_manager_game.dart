@@ -9,8 +9,7 @@ import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 import 'package:keyhole_manager/models/tenant.dart';
 
-class KeyholeManagerGame extends FlameGame
-    with HasKeyboardHandlerComponents {
+class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   late final Building building;
   late Manager manager;
 
@@ -45,8 +44,7 @@ class KeyholeManagerGame extends FlameGame
             floorIndex: f,
             roomIndex: r,
             tenant: Tenant(
-              name:
-                  'Tenant ${f * GameConstants.roomsPerFloor + r + 1}',
+              name: 'Tenant ${f * GameConstants.roomsPerFloor + r + 1}',
             ),
           ),
         );
