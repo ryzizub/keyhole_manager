@@ -15,10 +15,10 @@ DAY PHASE (one round = one day, fixed duration)
   -> Sun rises, day timer starts
   -> Manager patrols the building (real-time movement)
   -> Peek through keyholes to observe tenants
-  -> Spot rule violations -> door gets RED tint
-  -> Rush to the door and issue a fine before night falls
+  -> Observe visual clues through keyholes
+  -> Mark each room as "Clear" or select a specific rule violation
   -> Sky gradually shifts from morning to sunset as time passes
-  -> Violations not fined by nightfall -> deducted from manager's balance
+  -> Checklist scored at nightfall: correct catches, wrong accusations, misses
 
 NIGHT PHASE (between-round)
   -> Day summary: fines issued, violations missed, net income
@@ -52,11 +52,22 @@ NIGHT PHASE (between-round)
 - The player must spot and fine as many violations as possible before nightfall
 - Night phase is the shop/management screen -- no patrolling
 
-### Violation Detection & Fines
-- When a violation is spotted through the keyhole, the door gets a **red tint/indicator**
-- The manager must reach the door and interact to **issue a fine** before the round ends
-- Successfully issued fine: money added to manager's balance
-- Unfined violations at round end: the manager pays a penalty from their own balance (covering damages, complaints, etc.)
+### Observation & Judgment (Checklist System)
+- Peeking through a keyhole shows **visual clues** hinting at what the tenant is doing:
+  - **No music:** musical notes floating in the room
+  - **No pets:** small animal shape on the floor
+  - **No cooking:** smoke/steam above a stove
+  - **No parties:** multiple person silhouettes
+  - **Lights out:** bright room with visible lamp
+  - **Clean:** normal furniture, nothing suspicious
+- After observing, a **marking menu** appears: player selects "Clear" or a specific active rule
+- The player's judgment is recorded in a **round checklist** -- no automatic detection
+- Doors look identical from outside -- no per-door color indicators
+- At round end, the checklist is scored:
+  - **Correct violation catch:** fine collected (income)
+  - **Wrong accusation:** penalty deducted from balance
+  - **Missed violation:** penalty deducted from balance
+  - **Correct clear:** no effect
 
 ### Economy
 | Income | Cost |
@@ -111,8 +122,8 @@ All UI menus (shop, rules list, pause) must be fully navigable with gamepad. No 
 ## UI / HUD
 
 - **Top bar:** Current balance, day number, day/night indicator (sun position or clock)
-- **Side panel (during keyhole peek):** Close-up view of flat interior
-- **Door indicators:** Green = compliant, Red = violation detected, Grey = unchecked
+- **Keyhole view:** Fullscreen circular vignette with visual clues and marking menu
+- **Doors:** All look identical from outside (no color indicators)
 - **Between rounds:** Shop overlay with upgrade options, financial summary
 
 ---
