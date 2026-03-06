@@ -2,9 +2,12 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
+import 'package:keyhole_manager/components/building.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
+import 'package:keyhole_manager/game/keyhole_manager_game.dart';
 
-class Manager extends PositionComponent with KeyboardHandler {
+class Manager extends PositionComponent
+    with KeyboardHandler, HasGameReference<KeyholeManagerGame> {
   static final _paint = Paint()..color = const Color(0xFF4488FF);
 
   final Set<LogicalKeyboardKey> _keysPressed = {};
@@ -21,6 +24,12 @@ class Manager extends PositionComponent with KeyboardHandler {
         );
 
   bool get _inStairwell => position.x < GameConstants.stairsWidth;
+
+  bool _isPeekKey(LogicalKeyboardKey key) =>
+      key == LogicalKeyboardKey.keyE || key == LogicalKeyboardKey.space;
+
+  bool _isPeekStopKey(LogicalKeyboardKey key) =>
+      _isPeekKey(key) || key == LogicalKeyboardKey.escape;
   bool get _isClimbing => _targetFloor != null;
 
   double _floorY(int floor) =>
@@ -29,11 +38,33 @@ class Manager extends PositionComponent with KeyboardHandler {
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (event is KeyDownEvent && _inStairwell && !_isClimbing) {
-      final dir = _verticalDir(event.logicalKey);
-      final next = currentFloor + dir;
-      if (dir != 0 && next >= 0 && next < floorCount) {
-        _targetFloor = next;
+    if (event is KeyDownEvent) {
+      final key = event.logicalKey;
+
+      if (game.isPeeking) {
+        if (_isPeekStopKey(key)) {
+          game.stopPeek();
+          _keysPressed.clear();
+        }
+        return true;
+      }
+
+      if (_isPeekKey(key)) {
+        final building = parent! as Building;
+        final door = building.findNearestDoor();
+        if (door != null && door.room != null) {
+          _keysPressed.clear();
+          game.startPeek(door.room!);
+          return true;
+        }
+      }
+
+      if (_inStairwell && !_isClimbing) {
+        final dir = _verticalDir(key);
+        final next = currentFloor + dir;
+        if (dir != 0 && next >= 0 && next < floorCount) {
+          _targetFloor = next;
+        }
       }
     }
     _keysPressed
@@ -46,8 +77,7 @@ class Manager extends PositionComponent with KeyboardHandler {
     if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
       return 1;
     }
-    if (key == LogicalKeyboardKey.arrowDown ||
-        key == LogicalKeyboardKey.keyS) {
+    if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
       return -1;
     }
     return 0;
@@ -55,6 +85,10 @@ class Manager extends PositionComponent with KeyboardHandler {
 
   @override
   void update(double dt) {
+    if (game.isPeeking) {
+      return;
+    }
+
     if (_isClimbing) {
       _animateClimb(dt);
     } else {

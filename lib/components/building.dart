@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:keyhole_manager/components/door.dart';
 import 'package:keyhole_manager/components/floor_component.dart';
 import 'package:keyhole_manager/components/manager.dart';
 import 'package:keyhole_manager/components/stairs_component.dart';
@@ -58,5 +59,28 @@ class Building extends PositionComponent
       ),
     );
     await add(manager);
+  }
+
+  Door? findNearestDoor() {
+    final floor = children
+        .whereType<FloorComponent>()
+        .where(
+          (f) => f.floorIndex == manager.currentFloor,
+        )
+        .firstOrNull;
+    if (floor == null) {
+      return null;
+    }
+
+    final managerCenterX = manager.position.x + manager.size.x / 2;
+
+    for (final door in floor.children.whereType<Door>()) {
+      final doorCenterX = floor.position.x + door.position.x + door.size.x / 2;
+      if ((managerCenterX - doorCenterX).abs() <=
+          GameConstants.peekProximityThreshold) {
+        return door;
+      }
+    }
+    return null;
   }
 }

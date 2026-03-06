@@ -17,4 +17,7 @@ class GameConstants {
   static const double managerClimbSpeed = 60;
   static const double managerWidth = 16;
   static const double managerHeight = 24;
+
+  // Peek
+  static const double peekProximityThreshold = 12.0;
 }

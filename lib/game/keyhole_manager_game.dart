@@ -15,6 +15,8 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
   List<Room> rooms = [];
   int floorCount = GameConstants.startingFloors;
+  Room? peekedRoom;
+  bool get isPeeking => peekedRoom != null;
 
   @override
   Color backgroundColor() => const Color(0xFF0D0D1A);
@@ -49,7 +51,8 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     final buildingTop = buildingBottom - buildingHeight;
 
     // Manager center in world coordinates
-    final managerWorldY = buildingBottom - buildingHeight +
+    final managerWorldY = buildingBottom -
+        buildingHeight +
         manager.position.y +
         manager.size.y / 2;
 
@@ -61,6 +64,16 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     );
 
     camera.viewfinder.position = Vector2(0, cameraY);
+  }
+
+  void startPeek(Room room) {
+    peekedRoom = room;
+    overlays.add('peek');
+  }
+
+  void stopPeek() {
+    peekedRoom = null;
+    overlays.remove('peek');
   }
 
   void _buildRooms() {
