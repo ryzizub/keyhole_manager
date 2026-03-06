@@ -11,16 +11,13 @@ dependencies:
   flame: 1.35.1
   flame_audio: 2.11.14
   flame_bloc: 1.12.21
-  gamepads: ^0.1.9
   flutter:
     sdk: flutter
+  gamepads: ^0.1.9
 
 dev_dependencies:
   flame_lint: 1.4.2
-  flame_test: 2.2.2
   flutter_test:
-    sdk: flutter
-  integration_test:
     sdk: flutter
 
 flutter:
