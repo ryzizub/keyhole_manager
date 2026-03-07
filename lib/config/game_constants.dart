@@ -25,4 +25,9 @@ class GameConstants {
   static const int startingBalance = 100;
   static const int correctReportReward = 25;
   static const int wrongReportPenalty = 15;
+
+  // Day cycle
+  static const double dayDurationSeconds = 60.0;
+  static const int missedViolationPenalty = 20;
+  static const double dayEndPauseDuration = 3.0;
 }

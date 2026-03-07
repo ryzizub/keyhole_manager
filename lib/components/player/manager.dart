@@ -36,7 +36,7 @@ class Manager extends PositionComponent
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (game.isPeeking) {
+    if (game.isPeeking || !game.isDayActive) {
       _keysPressed.clear();
       return true;
     }
@@ -91,7 +91,7 @@ class Manager extends PositionComponent
 
   @override
   void update(double dt) {
-    if (game.isPeeking) {
+    if (game.isPeeking || !game.isDayActive) {
       return;
     }
 

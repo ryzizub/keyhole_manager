@@ -10,7 +10,10 @@ import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 import 'package:keyhole_manager/models/tenant.dart';
 import 'package:keyhole_manager/models/violation.dart';
+import 'package:keyhole_manager/systems/day_cycle_controller.dart';
 import 'package:keyhole_manager/ui/balance_hud.dart';
+import 'package:keyhole_manager/ui/day_summary_hud.dart';
+import 'package:keyhole_manager/ui/day_timer_hud.dart';
 import 'package:keyhole_manager/ui/feedback_text.dart';
 
 class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
@@ -22,6 +25,11 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   int balance = GameConstants.startingBalance;
   PeekView? peekOverlay;
   bool get isPeeking => peekOverlay != null;
+
+  int currentDay = 1;
+  double dayTimeRemaining = GameConstants.dayDurationSeconds;
+  bool isDayActive = true;
+  DaySummaryHud? _summaryHud;
 
   @override
   Color backgroundColor() => const Color(0xFF0D0D1A);
@@ -42,6 +50,8 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     manager = building.manager;
 
     camera.viewport.add(BalanceHud());
+    camera.viewport.add(DayTimerHud());
+    world.add(DayCycleController());
 
     _updateCamera();
   }
@@ -72,6 +82,9 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   }
 
   void startPeek(Room room) {
+    if (!isDayActive) {
+      return;
+    }
     final overlay = PeekView(room: room);
     peekOverlay = overlay;
     camera.viewport.add(overlay);
@@ -83,6 +96,9 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   }
 
   void reportViolation(Room room, Violation? violation) {
+    if (!isDayActive) {
+      return;
+    }
     if (room.reported) {
       return;
     }
@@ -131,6 +147,48 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     }
 
     stopPeek();
+  }
+
+  void endDay() {
+    if (!isDayActive) {
+      return;
+    }
+    stopPeek();
+    isDayActive = false;
+
+    var missedCount = 0;
+    for (final room in rooms) {
+      if (!room.reported && room.hasViolations) {
+        missedCount++;
+      }
+    }
+
+    final penaltyTotal = missedCount * GameConstants.missedViolationPenalty;
+    balance -= penaltyTotal;
+
+    final summary = DaySummaryHud(
+      day: currentDay,
+      missedCount: missedCount,
+      penaltyTotal: penaltyTotal,
+      currentBalance: balance,
+    );
+    _summaryHud = summary;
+    camera.viewport.add(summary);
+  }
+
+  void startNewDay() {
+    currentDay++;
+    dayTimeRemaining = GameConstants.dayDurationSeconds;
+    isDayActive = true;
+
+    for (final room in rooms) {
+      room.reported = false;
+      room.reportedViolation = null;
+      room.randomizeViolations();
+    }
+
+    _summaryHud?.removeFromParent();
+    _summaryHud = null;
   }
 
   void _buildRooms() {
