@@ -5,13 +5,13 @@ import 'package:keyhole_manager/components/building/door.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 
-class FloorComponent extends PositionComponent {
+class Floor extends PositionComponent {
   static final _wallPaint = Paint()..color = const Color(0xFF4A4A5A);
 
   final int floorIndex;
   final List<Room> rooms;
 
-  FloorComponent({
+  Floor({
     required this.floorIndex,
     required this.rooms,
     super.position,

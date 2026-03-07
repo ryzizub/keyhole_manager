@@ -61,6 +61,19 @@ class Manager extends PositionComponent
     if (_isPeekStopKey(key)) {
       game.stopPeek();
       _keysPressed.clear();
+      return;
+    }
+
+    final overlay = game.peekOverlay;
+    if (overlay == null) {
+      return;
+    }
+
+    if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
+      overlay.moveCursor(-1);
+    } else if (key == LogicalKeyboardKey.arrowDown ||
+        key == LogicalKeyboardKey.keyS) {
+      overlay.moveCursor(1);
     }
   }
 

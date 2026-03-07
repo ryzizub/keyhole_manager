@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 
-class StairsComponent extends PositionComponent {
+class Stairs extends PositionComponent {
   static final _bgPaint = Paint()..color = const Color(0xFF2A2A3A);
   static final _stepPaint = Paint()
     ..color = const Color(0xFF3A3A4A)
@@ -11,7 +11,7 @@ class StairsComponent extends PositionComponent {
 
   final int floorCount;
 
-  StairsComponent({required this.floorCount})
+  Stairs({required this.floorCount})
       : super(
           position: Vector2.zero(),
           size: Vector2(

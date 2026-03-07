@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:keyhole_manager/components/building/door.dart';
-import 'package:keyhole_manager/components/building/floor_component.dart';
-import 'package:keyhole_manager/components/building/stairs_component.dart';
+import 'package:keyhole_manager/components/building/floor.dart';
+import 'package:keyhole_manager/components/building/stairs.dart';
 import 'package:keyhole_manager/components/player/manager.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/game/keyhole_manager_game.dart';
@@ -32,7 +32,7 @@ class Building extends PositionComponent
       floorCount * GameConstants.floorHeight,
     );
 
-    await add(StairsComponent(floorCount: floorCount));
+    await add(Stairs(floorCount: floorCount));
     await _addFloors(floorCount);
     await _addManager(floorCount);
   }
@@ -42,7 +42,7 @@ class Building extends PositionComponent
     for (var i = 0; i < floorCount; i++) {
       final floorRooms = rooms.where((r) => r.floorIndex == i).toList();
       await add(
-        FloorComponent(
+        Floor(
           floorIndex: i,
           rooms: floorRooms,
           position: Vector2(
@@ -69,7 +69,7 @@ class Building extends PositionComponent
 
   Door? findNearestDoor() {
     final floor = children
-        .whereType<FloorComponent>()
+        .whereType<Floor>()
         .where(
           (f) => f.floorIndex == manager.currentFloor,
         )

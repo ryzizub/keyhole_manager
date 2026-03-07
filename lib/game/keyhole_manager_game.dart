@@ -4,11 +4,11 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:keyhole_manager/components/building/building.dart';
+import 'package:keyhole_manager/components/peek_view/peek_view.dart';
 import 'package:keyhole_manager/components/player/manager.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 import 'package:keyhole_manager/models/tenant.dart';
-import 'package:keyhole_manager/ui/peek_view_component.dart';
 
 class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   late final Building building;
@@ -16,8 +16,8 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
   List<Room> rooms = [];
   int floorCount = GameConstants.startingFloors;
-  PeekViewComponent? _peekOverlay;
-  bool get isPeeking => _peekOverlay != null;
+  PeekView? peekOverlay;
+  bool get isPeeking => peekOverlay != null;
 
   @override
   Color backgroundColor() => const Color(0xFF0D0D1A);
@@ -66,14 +66,15 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   }
 
   void startPeek(Room room) {
-    final overlay = PeekViewComponent(room: room);
-    _peekOverlay = overlay;
+    room.randomizeViolations();
+    final overlay = PeekView(room: room);
+    peekOverlay = overlay;
     camera.viewport.add(overlay);
   }
 
   void stopPeek() {
-    _peekOverlay?.removeFromParent();
-    _peekOverlay = null;
+    peekOverlay?.removeFromParent();
+    peekOverlay = null;
   }
 
   void _buildRooms() {
