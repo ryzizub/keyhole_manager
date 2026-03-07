@@ -38,14 +38,16 @@ class Manager extends PositionComponent
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (game.isPeeking) {
+      if (event is KeyDownEvent && _isPeekStopKey(event.logicalKey)) {
+        game.stopPeek();
+        _keysPressed.clear();
+      }
+      return true;
+    }
+
     if (event is KeyDownEvent) {
       final key = event.logicalKey;
-
-      if (game.isPeeking) {
-        _handlePeekInput(key);
-        return true;
-      }
-
       if (_tryStartPeek(key)) {
         return true;
       }
@@ -55,26 +57,6 @@ class Manager extends PositionComponent
       ..clear()
       ..addAll(keysPressed);
     return true;
-  }
-
-  void _handlePeekInput(LogicalKeyboardKey key) {
-    if (_isPeekStopKey(key)) {
-      game.stopPeek();
-      _keysPressed.clear();
-      return;
-    }
-
-    final overlay = game.peekOverlay;
-    if (overlay == null) {
-      return;
-    }
-
-    if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
-      overlay.moveCursor(-1);
-    } else if (key == LogicalKeyboardKey.arrowDown ||
-        key == LogicalKeyboardKey.keyS) {
-      overlay.moveCursor(1);
-    }
   }
 
   bool _tryStartPeek(LogicalKeyboardKey key) {

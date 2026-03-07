@@ -1,14 +1,16 @@
-import 'dart:ui';
+import 'dart:ui' hide TextStyle;
 
 import 'package:flame/components.dart';
+import 'package:flutter/painting.dart' show TextStyle;
+import 'package:flutter/services.dart';
 import 'package:keyhole_manager/components/peek_view/room_violations.dart';
 import 'package:keyhole_manager/components/peek_view/violation_list.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 import 'package:keyhole_manager/models/violation.dart';
 
-class PeekView extends PositionComponent {
-  final Room? room;
+class PeekView extends PositionComponent with KeyboardHandler {
+  final Room room;
 
   late final ViolationList _violationList;
 
@@ -19,21 +21,38 @@ class PeekView extends PositionComponent {
   static const double _headerY = 10;
   static const double _listY = 24;
 
-  PeekView({this.room})
+  static final _bgPaint = Paint()..color = const Color(0xDD000000);
+
+  PeekView({required this.room})
       : super(
           size: Vector2(
             GameConstants.viewportWidth,
             GameConstants.viewportHeight,
           ),
           anchor: Anchor.topLeft,
+          priority: 100,
         );
 
   double get _roomWidth =>
       size.x - _padding * 2 - _violationListWidth - _columnGap;
 
-  void moveCursor(int dir) => _violationList.moveCursor(dir);
-
   Violation get selectedViolation => _violationList.selectedViolation;
+
+  @override
+  bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (event is! KeyDownEvent) {
+      return true;
+    }
+
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
+      _violationList.moveCursor(-1);
+    } else if (key == LogicalKeyboardKey.arrowDown ||
+        key == LogicalKeyboardKey.keyS) {
+      _violationList.moveCursor(1);
+    }
+    return true;
+  }
 
   @override
   Future<void> onLoad() async {
@@ -50,28 +69,27 @@ class PeekView extends PositionComponent {
       size: Vector2(_roomWidth, size.y - _listY),
     );
 
-    addAll([_violationList, roomViolations]);
+    const headerStyle =
+        TextStyle(fontSize: _textSize, color: Color(0xFF888888));
+    final headerRenderer = TextPaint(style: headerStyle);
+
+    final roomHeader = TextComponent(
+      text: 'ROOM',
+      position: Vector2(_padding, _headerY),
+      textRenderer: headerRenderer,
+    );
+
+    final violationsHeader = TextComponent(
+      text: 'VIOLATIONS',
+      position: Vector2(listX, _headerY),
+      textRenderer: headerRenderer,
+    );
+
+    addAll([_violationList, roomViolations, roomHeader, violationsHeader]);
   }
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect(
-      size.toRect(),
-      Paint()..color = const Color(0xDD000000),
-    );
-
-    const roomX = _padding;
-    final listX = _padding + _roomWidth + _columnGap;
-
-    _renderHeader(canvas, roomX, _roomWidth, 'ROOM');
-    _renderHeader(canvas, listX, _violationListWidth, 'VIOLATIONS');
-  }
-
-  void _renderHeader(Canvas canvas, double x, double width, String text) {
-    final pb = ParagraphBuilder(ParagraphStyle(fontSize: _textSize))
-      ..pushStyle(TextStyle(color: const Color(0xFF888888)))
-      ..addText(text);
-    final p = pb.build()..layout(ParagraphConstraints(width: width));
-    canvas.drawParagraph(p, Offset(x, _headerY));
+    canvas.drawRect(size.toRect(), _bgPaint);
   }
 }

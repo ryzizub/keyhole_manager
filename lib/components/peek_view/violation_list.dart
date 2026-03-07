@@ -1,6 +1,7 @@
-import 'dart:ui';
+import 'dart:ui' hide TextStyle;
 
 import 'package:flame/components.dart';
+import 'package:flutter/painting.dart' show TextStyle;
 import 'package:keyhole_manager/models/violation.dart';
 
 class ViolationList extends PositionComponent {
@@ -10,6 +11,17 @@ class ViolationList extends PositionComponent {
   static const double _boxGap = 4;
   static const double _textSize = 8;
   static const double _textPadding = 4;
+
+  static final _selectedBgPaint = Paint()..color = const Color(0xFFFFFFFF);
+  static final _unselectedBgPaint = Paint()..color = const Color(0xFF333333);
+  static final _cursorPaint = Paint()..color = const Color(0xFFFFFF00);
+
+  static final _selectedTextPaint = TextPaint(
+    style: const TextStyle(fontSize: _textSize, color: Color(0xFF000000)),
+  );
+  static final _unselectedTextPaint = TextPaint(
+    style: const TextStyle(fontSize: _textSize, color: Color(0xFFCCCCCC)),
+  );
 
   ViolationList({
     required super.position,
@@ -30,32 +42,23 @@ class ViolationList extends PositionComponent {
       final y = i * (_boxHeight + _boxGap);
       final isSelected = i == _cursorIndex;
 
-      final bgColor =
-          isSelected ? const Color(0xFFFFFFFF) : const Color(0xFF333333);
-
       canvas.drawRect(
         Rect.fromLTWH(0, y, size.x, _boxHeight),
-        Paint()..color = bgColor,
+        isSelected ? _selectedBgPaint : _unselectedBgPaint,
       );
 
       if (isSelected) {
         canvas.drawRect(
-          Rect.fromLTWH(-5, y + 2, 3, _boxHeight - 4),
-          Paint()..color = const Color(0xFFFFFF00),
+          Rect.fromLTWH(0, y + 2, 3, _boxHeight - 4),
+          _cursorPaint,
         );
       }
 
-      final textColor =
-          isSelected ? const Color(0xFF000000) : const Color(0xFFCCCCCC);
-
-      final pb = ParagraphBuilder(ParagraphStyle(fontSize: _textSize))
-        ..pushStyle(TextStyle(color: textColor))
-        ..addText(violations[i].label);
-      final p = pb.build()
-        ..layout(ParagraphConstraints(width: size.x - _textPadding * 2));
-      canvas.drawParagraph(
-        p,
-        Offset(_textPadding, y + (_boxHeight - _textSize) / 2),
+      final textPaint = isSelected ? _selectedTextPaint : _unselectedTextPaint;
+      textPaint.render(
+        canvas,
+        violations[i].label,
+        Vector2(_textPadding, y + (_boxHeight - _textSize) / 2),
       );
     }
   }
