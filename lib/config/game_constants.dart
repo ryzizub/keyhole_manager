@@ -20,4 +20,9 @@ class GameConstants {
 
   // Peek
   static const double peekProximityThreshold = 12.0;
+
+  // Economy
+  static const int startingBalance = 100;
+  static const int correctReportReward = 25;
+  static const int wrongReportPenalty = 15;
 }

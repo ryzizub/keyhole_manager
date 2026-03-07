@@ -28,8 +28,6 @@ class Manager extends PositionComponent
   bool _isPeekKey(LogicalKeyboardKey key) =>
       key == LogicalKeyboardKey.keyE || key == LogicalKeyboardKey.space;
 
-  bool _isPeekStopKey(LogicalKeyboardKey key) =>
-      _isPeekKey(key) || key == LogicalKeyboardKey.escape;
   bool get _isClimbing => _targetFloor != null;
 
   double _floorY(int floor) =>
@@ -39,10 +37,7 @@ class Manager extends PositionComponent
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (game.isPeeking) {
-      if (event is KeyDownEvent && _isPeekStopKey(event.logicalKey)) {
-        game.stopPeek();
-        _keysPressed.clear();
-      }
+      _keysPressed.clear();
       return true;
     }
 

@@ -9,6 +9,9 @@ import 'package:keyhole_manager/components/player/manager.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 import 'package:keyhole_manager/models/tenant.dart';
+import 'package:keyhole_manager/models/violation.dart';
+import 'package:keyhole_manager/ui/balance_hud.dart';
+import 'package:keyhole_manager/ui/feedback_text.dart';
 
 class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   late final Building building;
@@ -16,6 +19,7 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
   List<Room> rooms = [];
   int floorCount = GameConstants.startingFloors;
+  int balance = GameConstants.startingBalance;
   PeekView? peekOverlay;
   bool get isPeeking => peekOverlay != null;
 
@@ -36,6 +40,8 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
     await building.loaded;
     manager = building.manager;
+
+    camera.viewport.add(BalanceHud());
 
     _updateCamera();
   }
@@ -66,7 +72,6 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   }
 
   void startPeek(Room room) {
-    room.randomizeViolations();
     final overlay = PeekView(room: room);
     peekOverlay = overlay;
     camera.viewport.add(overlay);
@@ -77,19 +82,70 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     peekOverlay = null;
   }
 
+  void reportViolation(Room room, Violation? violation) {
+    if (room.reported) {
+      return;
+    }
+
+    room.reported = true;
+    room.reportedViolation = violation;
+
+    final center = Vector2(
+      GameConstants.viewportWidth / 2,
+      GameConstants.viewportHeight / 2,
+    );
+
+    if (violation != null && room.activeViolations.contains(violation)) {
+      balance += GameConstants.correctReportReward;
+      camera.viewport.add(
+        FeedbackText.correct(
+          GameConstants.correctReportReward,
+          position: center,
+        ),
+      );
+    } else if (violation != null &&
+        !room.activeViolations.contains(violation)) {
+      balance -= GameConstants.wrongReportPenalty;
+      camera.viewport.add(
+        FeedbackText.wrong(
+          GameConstants.wrongReportPenalty,
+          position: center,
+        ),
+      );
+    } else if (violation == null && room.hasViolations) {
+      balance -= GameConstants.wrongReportPenalty;
+      camera.viewport.add(
+        FeedbackText.wrong(
+          GameConstants.wrongReportPenalty,
+          position: center,
+        ),
+      );
+    } else if (violation == null && !room.hasViolations) {
+      balance += GameConstants.correctReportReward;
+      camera.viewport.add(
+        FeedbackText.correct(
+          GameConstants.correctReportReward,
+          position: center,
+        ),
+      );
+    }
+
+    stopPeek();
+  }
+
   void _buildRooms() {
     rooms.clear();
     for (var f = 0; f < floorCount; f++) {
       for (var r = 0; r < GameConstants.roomsPerFloor; r++) {
-        rooms.add(
-          Room(
-            floorIndex: f,
-            roomIndex: r,
-            tenant: Tenant(
-              name: 'Tenant ${f * GameConstants.roomsPerFloor + r + 1}',
-            ),
+        final room = Room(
+          floorIndex: f,
+          roomIndex: r,
+          tenant: Tenant(
+            name: 'Tenant ${f * GameConstants.roomsPerFloor + r + 1}',
           ),
         );
+        room.randomizeViolations();
+        rooms.add(room);
       }
     }
   }

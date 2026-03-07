@@ -6,10 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:keyhole_manager/components/peek_view/room_violations.dart';
 import 'package:keyhole_manager/components/peek_view/violation_list.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
+import 'package:keyhole_manager/game/keyhole_manager_game.dart';
 import 'package:keyhole_manager/models/room.dart';
-import 'package:keyhole_manager/models/violation.dart';
 
-class PeekView extends PositionComponent with KeyboardHandler {
+class PeekView extends PositionComponent
+    with KeyboardHandler, HasGameReference<KeyholeManagerGame> {
   final Room room;
 
   late final ViolationList _violationList;
@@ -36,8 +37,6 @@ class PeekView extends PositionComponent with KeyboardHandler {
   double get _roomWidth =>
       size.x - _padding * 2 - _violationListWidth - _columnGap;
 
-  Violation get selectedViolation => _violationList.selectedViolation;
-
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is! KeyDownEvent) {
@@ -50,6 +49,15 @@ class PeekView extends PositionComponent with KeyboardHandler {
     } else if (key == LogicalKeyboardKey.arrowDown ||
         key == LogicalKeyboardKey.keyS) {
       _violationList.moveCursor(1);
+    } else if (key == LogicalKeyboardKey.keyE ||
+        key == LogicalKeyboardKey.space) {
+      if (!room.reported) {
+        game.reportViolation(room, _violationList.selectedOption);
+      } else {
+        game.stopPeek();
+      }
+    } else if (key == LogicalKeyboardKey.escape) {
+      game.stopPeek();
     }
     return true;
   }
