@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flame/components.dart';
-import 'package:keyhole_manager/components/door.dart';
+import 'package:keyhole_manager/components/building/door.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 

@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
-import 'package:keyhole_manager/components/building.dart';
+import 'package:keyhole_manager/components/building/building.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/game/keyhole_manager_game.dart';
 
@@ -42,35 +42,51 @@ class Manager extends PositionComponent
       final key = event.logicalKey;
 
       if (game.isPeeking) {
-        if (_isPeekStopKey(key)) {
-          game.stopPeek();
-          _keysPressed.clear();
-        }
+        _handlePeekInput(key);
         return true;
       }
 
-      if (_isPeekKey(key)) {
-        final building = parent! as Building;
-        final door = building.findNearestDoor();
-        if (door != null && door.room != null) {
-          _keysPressed.clear();
-          game.startPeek(door.room!);
-          return true;
-        }
+      if (_tryStartPeek(key)) {
+        return true;
       }
-
-      if (_inStairwell && !_isClimbing) {
-        final dir = _verticalDir(key);
-        final next = currentFloor + dir;
-        if (dir != 0 && next >= 0 && next < floorCount) {
-          _targetFloor = next;
-        }
-      }
+      _tryStartClimb(key);
     }
     _keysPressed
       ..clear()
       ..addAll(keysPressed);
     return true;
+  }
+
+  void _handlePeekInput(LogicalKeyboardKey key) {
+    if (_isPeekStopKey(key)) {
+      game.stopPeek();
+      _keysPressed.clear();
+    }
+  }
+
+  bool _tryStartPeek(LogicalKeyboardKey key) {
+    if (!_isPeekKey(key)) {
+      return false;
+    }
+    final building = parent! as Building;
+    final door = building.findNearestDoor();
+    if (door == null || door.room == null) {
+      return false;
+    }
+    _keysPressed.clear();
+    game.startPeek(door.room!);
+    return true;
+  }
+
+  void _tryStartClimb(LogicalKeyboardKey key) {
+    if (!_inStairwell || _isClimbing) {
+      return;
+    }
+    final dir = _verticalDir(key);
+    final next = currentFloor + dir;
+    if (dir != 0 && next >= 0 && next < floorCount) {
+      _targetFloor = next;
+    }
   }
 
   int _verticalDir(LogicalKeyboardKey key) {

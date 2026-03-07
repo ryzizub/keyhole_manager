@@ -3,11 +3,12 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:keyhole_manager/components/building.dart';
-import 'package:keyhole_manager/components/manager.dart';
+import 'package:keyhole_manager/components/building/building.dart';
+import 'package:keyhole_manager/components/player/manager.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/models/room.dart';
 import 'package:keyhole_manager/models/tenant.dart';
+import 'package:keyhole_manager/ui/peek_view_component.dart';
 
 class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   late final Building building;
@@ -15,8 +16,8 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
   List<Room> rooms = [];
   int floorCount = GameConstants.startingFloors;
-  Room? peekedRoom;
-  bool get isPeeking => peekedRoom != null;
+  PeekViewComponent? _peekOverlay;
+  bool get isPeeking => _peekOverlay != null;
 
   @override
   Color backgroundColor() => const Color(0xFF0D0D1A);
@@ -47,16 +48,14 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
   void _updateCamera() {
     final buildingHeight = floorCount * GameConstants.floorHeight;
-    final buildingBottom = building.position.y; // world Y of bottom edge
+    final buildingBottom = building.position.y;
     final buildingTop = buildingBottom - buildingHeight;
 
-    // Manager center in world coordinates
     final managerWorldY = buildingBottom -
         buildingHeight +
         manager.position.y +
         manager.size.y / 2;
 
-    // Camera Y: center on manager, but clamp so building edges stay in view
     const halfView = GameConstants.viewportHeight / 2;
     final cameraY = managerWorldY.clamp(
       buildingTop + halfView,
@@ -67,13 +66,14 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   }
 
   void startPeek(Room room) {
-    peekedRoom = room;
-    overlays.add('peek');
+    final overlay = PeekViewComponent(room: room);
+    _peekOverlay = overlay;
+    camera.viewport.add(overlay);
   }
 
   void stopPeek() {
-    peekedRoom = null;
-    overlays.remove('peek');
+    _peekOverlay?.removeFromParent();
+    _peekOverlay = null;
   }
 
   void _buildRooms() {

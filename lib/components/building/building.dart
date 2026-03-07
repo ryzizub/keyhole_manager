@@ -1,8 +1,8 @@
 import 'package:flame/components.dart';
-import 'package:keyhole_manager/components/door.dart';
-import 'package:keyhole_manager/components/floor_component.dart';
-import 'package:keyhole_manager/components/manager.dart';
-import 'package:keyhole_manager/components/stairs_component.dart';
+import 'package:keyhole_manager/components/building/door.dart';
+import 'package:keyhole_manager/components/building/floor_component.dart';
+import 'package:keyhole_manager/components/building/stairs_component.dart';
+import 'package:keyhole_manager/components/player/manager.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
 import 'package:keyhole_manager/game/keyhole_manager_game.dart';
 
@@ -24,7 +24,6 @@ class Building extends PositionComponent
   Future<void> rebuild() async {
     removeAll(children);
 
-    final rooms = game.rooms;
     final floorCount = game.floorCount;
 
     size = Vector2(
@@ -34,7 +33,12 @@ class Building extends PositionComponent
     );
 
     await add(StairsComponent(floorCount: floorCount));
+    await _addFloors(floorCount);
+    await _addManager(floorCount);
+  }
 
+  Future<void> _addFloors(int floorCount) async {
+    final rooms = game.rooms;
     for (var i = 0; i < floorCount; i++) {
       final floorRooms = rooms.where((r) => r.floorIndex == i).toList();
       await add(
@@ -48,7 +52,9 @@ class Building extends PositionComponent
         ),
       );
     }
+  }
 
+  Future<void> _addManager(int floorCount) async {
     manager = Manager(
       floorCount: floorCount,
       position: Vector2(
