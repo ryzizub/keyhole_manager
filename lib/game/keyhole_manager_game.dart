@@ -85,8 +85,7 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     if (layers == null) {
       return;
     }
-    final paint = Paint()
-      ..color = Color.fromARGB(alpha, 255, 255, 255);
+    final paint = Paint()..color = Color.fromARGB(alpha, 255, 255, 255);
     for (final layer in layers) {
       final img = layer.image;
       final src = Rect.fromLTWH(
@@ -291,22 +290,10 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
             _BgLayerAlign.fill,
           ),
         );
-        layers.add(
-          _BgLayer(
-            await images.load('background/$name/cloudstripes.png'),
-            _BgLayerAlign.fill,
-          ),
-        );
       } else if (phase == DayPhase.sunset) {
         layers.add(
           _BgLayer(
             await images.load('background/$name/sun.png'),
-            _BgLayerAlign.fill,
-          ),
-        );
-        layers.add(
-          _BgLayer(
-            await images.load('background/$name/cloudstripes.png'),
             _BgLayerAlign.fill,
           ),
         );
