@@ -67,6 +67,7 @@ class PeekView extends PositionComponent
     final listX = _padding + _roomWidth + _columnGap;
 
     _violationList = ViolationList(
+      activeRules: game.activeRules,
       position: Vector2(listX, _listY),
       size: Vector2(_violationListWidth, size.y - _listY),
     );

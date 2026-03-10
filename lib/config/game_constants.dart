@@ -30,4 +30,13 @@ class GameConstants {
   static const double dayDurationSeconds = 60.0;
   static const int missedViolationPenalty = 20;
   static const double dayEndPauseDuration = 3.0;
+
+  // Rules & violations
+  static const int startingRuleCount = 3;
+  static const double violationChanceDay1to3 = 0.15;
+  static const double violationChanceDay4to7 = 0.25;
+  static const double violationChanceDay8to12 = 0.35;
+  static const double violationChanceDay13plus = 0.45;
+  static const double quietTraitMultiplier = 0.5;
+  static const double biasedTraitMultiplier = 1.8;
 }

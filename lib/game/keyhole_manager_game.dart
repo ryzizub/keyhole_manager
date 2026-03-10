@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -7,8 +8,10 @@ import 'package:keyhole_manager/components/building/building.dart';
 import 'package:keyhole_manager/components/peek_view/peek_view.dart';
 import 'package:keyhole_manager/components/player/manager.dart';
 import 'package:keyhole_manager/config/game_constants.dart';
+import 'package:keyhole_manager/config/tenant_names.dart';
 import 'package:keyhole_manager/models/room.dart';
 import 'package:keyhole_manager/models/tenant.dart';
+import 'package:keyhole_manager/models/tenant_trait.dart';
 import 'package:keyhole_manager/models/violation.dart';
 import 'package:keyhole_manager/systems/day_cycle_controller.dart';
 import 'package:keyhole_manager/ui/balance_hud.dart';
@@ -22,6 +25,7 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   final Map<DayPhase, List<_BgLayer>> _bgPhases = {};
 
   List<Room> rooms = [];
+  late List<Violation> activeRules;
   int floorCount = GameConstants.startingFloors;
   int balance = GameConstants.startingBalance;
   PeekView? peekOverlay;
@@ -114,6 +118,10 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     );
 
     await _loadAllBackgrounds();
+
+    final ruleRng = Random();
+    final shuffled = List<Violation>.from(Violation.values)..shuffle(ruleRng);
+    activeRules = shuffled.take(GameConstants.startingRuleCount).toList();
 
     _buildRooms();
 
@@ -258,7 +266,10 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     for (final room in rooms) {
       room.reported = false;
       room.reportedViolation = null;
-      room.randomizeViolations();
+      room.randomizeViolations(
+        activeRules: activeRules,
+        currentDay: currentDay,
+      );
     }
 
     _summaryHud?.removeFromParent();
@@ -316,18 +327,31 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     }
   }
 
+  void addRule(Violation rule) {
+    if (!activeRules.contains(rule)) {
+      activeRules.add(rule);
+    }
+  }
+
   void _buildRooms() {
+    final rng = Random();
     rooms.clear();
+    const traits = TenantTrait.values;
     for (var f = 0; f < floorCount; f++) {
       for (var r = 0; r < GameConstants.roomsPerFloor; r++) {
         final room = Room(
           floorIndex: f,
           roomIndex: r,
           tenant: Tenant(
-            name: 'Tenant ${f * GameConstants.roomsPerFloor + r + 1}',
+            name: TenantNames.generate(rng),
+            trait: traits[rng.nextInt(traits.length)],
           ),
         );
-        room.randomizeViolations();
+        room.randomizeViolations(
+          activeRules: activeRules,
+          currentDay: currentDay,
+          random: rng,
+        );
         rooms.add(room);
       }
     }

@@ -23,24 +23,26 @@ class ViolationList extends PositionComponent {
     style: const TextStyle(fontSize: _textSize, color: Color(0xFFCCCCCC)),
   );
 
+  final List<Violation> activeRules;
+
   ViolationList({
+    required this.activeRules,
     required super.position,
     required super.size,
   });
 
   void moveCursor(int dir) {
-    final count = Violation.values.length + 1; // +1 for "Clear"
+    final count = activeRules.length + 1; // +1 for "Clear"
     _cursorIndex = ((_cursorIndex + dir) % count + count) % count;
   }
 
   /// Returns null for "Clear" (index 0), or the selected Violation.
   Violation? get selectedOption =>
-      _cursorIndex == 0 ? null : Violation.values[_cursorIndex - 1];
+      _cursorIndex == 0 ? null : activeRules[_cursorIndex - 1];
 
   @override
   void render(Canvas canvas) {
-    const violations = Violation.values;
-    final totalItems = violations.length + 1; // +1 for "Clear"
+    final totalItems = activeRules.length + 1; // +1 for "Clear"
     for (var i = 0; i < totalItems; i++) {
       final y = i * (_boxHeight + _boxGap);
       final isSelected = i == _cursorIndex;
@@ -57,7 +59,7 @@ class ViolationList extends PositionComponent {
         );
       }
 
-      final label = i == 0 ? 'Clear' : violations[i - 1].label;
+      final label = i == 0 ? 'Clear' : activeRules[i - 1].label;
       final textPaint = isSelected ? _selectedTextPaint : _unselectedTextPaint;
       textPaint.render(
         canvas,
