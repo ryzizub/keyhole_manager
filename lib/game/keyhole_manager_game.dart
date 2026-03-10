@@ -18,9 +18,13 @@ import 'package:keyhole_manager/ui/balance_hud.dart';
 import 'package:keyhole_manager/ui/day_summary_hud.dart';
 import 'package:keyhole_manager/ui/day_timer_hud.dart';
 import 'package:keyhole_manager/ui/feedback_text.dart';
+import 'package:keyhole_manager/ui/game_over_hud.dart';
+import 'package:keyhole_manager/ui/start_menu_hud.dart';
+
+enum GameState { menu, playing, gameOver }
 
 class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
-  late final Building building;
+  late Building building;
   late Manager manager;
   final Map<DayPhase, List<_BgLayer>> _bgPhases = {};
 
@@ -35,6 +39,10 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
   double dayTimeRemaining = GameConstants.dayDurationSeconds;
   bool isDayActive = true;
   DaySummaryHud? _summaryHud;
+
+  GameState gameState = GameState.menu;
+  StartMenuHud? _startMenuHud;
+  GameOverHud? _gameOverHud;
 
   @override
   Color backgroundColor() => const Color(0xFF000000);
@@ -119,6 +127,12 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
 
     await _loadAllBackgrounds();
 
+    final menu = StartMenuHud();
+    _startMenuHud = menu;
+    camera.viewport.add(menu);
+  }
+
+  Future<void> _initializeGameplay() async {
     final ruleRng = Random();
     final shuffled = List<Violation>.from(Violation.values)..shuffle(ruleRng);
     activeRules = shuffled.take(GameConstants.startingRuleCount).toList();
@@ -138,10 +152,75 @@ class KeyholeManagerGame extends FlameGame with HasKeyboardHandlerComponents {
     _updateCamera();
   }
 
+  void startGame() {
+    _startMenuHud?.removeFromParent();
+    _startMenuHud = null;
+    gameState = GameState.playing;
+    _initializeGameplay();
+  }
+
+  void triggerGameOver() {
+    gameState = GameState.gameOver;
+    stopPeek();
+    isDayActive = false;
+    _summaryHud?.removeFromParent();
+    _summaryHud = null;
+
+    final hud = GameOverHud(
+      daysSurvived: currentDay,
+      finalBalance: balance,
+    );
+    _gameOverHud = hud;
+    camera.viewport.add(hud);
+  }
+
+  void restartGame() {
+    _gameOverHud?.removeFromParent();
+    _gameOverHud = null;
+    _cleanup();
+    _resetState();
+    gameState = GameState.playing;
+    _initializeGameplay();
+  }
+
+  void returnToMenu() {
+    _gameOverHud?.removeFromParent();
+    _gameOverHud = null;
+    _cleanup();
+    _resetState();
+    gameState = GameState.menu;
+
+    final menu = StartMenuHud();
+    _startMenuHud = menu;
+    camera.viewport.add(menu);
+  }
+
+  void _cleanup() {
+    world.removeAll(world.children);
+    camera.viewport.removeAll(
+      camera.viewport.children.whereType<Component>().where(
+            (c) => c is! FpsComponent,
+          ),
+    );
+  }
+
+  void _resetState() {
+    balance = GameConstants.startingBalance;
+    currentDay = 1;
+    dayTimeRemaining = GameConstants.dayDurationSeconds;
+    isDayActive = true;
+    rooms.clear();
+    floorCount = GameConstants.startingFloors;
+    peekOverlay = null;
+    _summaryHud = null;
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
-    _updateCamera();
+    if (gameState == GameState.playing) {
+      _updateCamera();
+    }
   }
 
   void _updateCamera() {

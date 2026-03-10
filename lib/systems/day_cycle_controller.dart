@@ -8,6 +8,10 @@ class DayCycleController extends Component
 
   @override
   void update(double dt) {
+    if (game.gameState != GameState.playing) {
+      return;
+    }
+
     if (game.isDayActive) {
       game.dayTimeRemaining -= dt;
       if (game.dayTimeRemaining <= 0) {
@@ -18,7 +22,11 @@ class DayCycleController extends Component
       _pauseTimer += dt;
       if (_pauseTimer >= GameConstants.dayEndPauseDuration) {
         _pauseTimer = 0;
-        game.startNewDay();
+        if (game.balance <= 0) {
+          game.triggerGameOver();
+        } else {
+          game.startNewDay();
+        }
       }
     }
   }
